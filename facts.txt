@@ -1,0 +1,13 @@
+(deftemplate f
+	(slot x
+	(type SYMBOL))
+)
+
+(deffacts resource
+	(A)
+	(B)
+	(B)
+	(C)
+	(C)
+)
+
