@@ -4,141 +4,66 @@
 ;try using modify for the p1-p4 states instead of creating and deleting
 ;current clock system only does one transition per column (X, Y, Z)
 
-(deffunction foo()
+(deftemplate fact
+	(slot x
+	(type SYMBOL))
+)
+
+(deffacts startup
+	(A)
+	(B)
+	(C))
+	(clk))
+)
+
+(deffunction foo(?x)
 	(printout t "in foo! " crlf)
+	;(if (= ?x p1)
+)
+
+(defrule print
+	(not (clk))
+	=>
+	(do-for-all-facts ((?f fact)) (printout t ?f:x crlf))
+	;(printout t "abba" crlf)
 )
 
 (defrule upkeep
-	(and (not (clkX))
-		 (not (clkY))
-		 (not (clkZ)))
+	(not (clk))
 	=>
 	(bind ?reqX (read data))	;read data from input file
 	(bind ?reqY (read data))
 	(bind ?reqZ (read data))
 	(if (= ?reqX 1) then (assert (reqX)))	;process input file data
-	(if (= ?reqY 1) then (assert (reqY)))	
-	(if (= ?reqZ 1) then (assert (reqZ)))
+	(if (and (= ?reqX 0) (= ?reqY 1)) then (assert (reqY)))	
+	(if (and (= ?reqX 0) (= ?reqY 0) (= ?reqZ 1)) then (assert (reqZ)))
 	(if (and (= ?reqX -1) (= ?reqY -1) (= ?reqZ -1)) 
 		then 
 			(assert (end))		;add terminating token
 		else
-			(assert (clkX))		;add clock signals
-			(assert (clkY))
-			(assert (clkZ))
+			(assert (clk))		;add clock signal
 	)
-)
-
-;--------------------------------
-; Rules for making product Z
-;--------------------------------
-(defrule t8
-	(and (reqZ) (C) (clkZ))
-	?fC <- (C)			;get fact C to remove
-	?fz <- (reqZ)		;bind the request for Z
-	?clk <- (clkZ)
-	=>
-	(assert (p8)) 		;add p1 state
-	(retract ?fC ?fz)	;remove resources A and B as well as the request for X
-	(retract ?clk)
-	;(foo)
-)
-
-(defrule t9
-	(and (p8) (clkZ))	;match p1 state
-	?fp8 <- (p8)		;bind p1 state
-	?clk <- (clkZ)
-	=>
-	(assert (p9))	;add p2 state
-	(retract ?fp8)	;remove p1 state
-	(retract ?clk)
-)
-
-(defrule t10
-	(and (p9) (clkZ))	;match p3 state
-	?fp9 <- (p9)		;bind p3 state
-	?clk <- (clkZ)
-	=>
-	;(assert (p10))	;produce product X (change to state p4)
-	(assert (Z))
-	(retract ?fp9)	;remove p3 state
-	(assert (C)) 	;return resource B
-	(retract ?clk)
-)
-
-(defrule endClkZ
-	(and (clkZ) (not (end)))
-	?clk <- (clkZ)
-	=>
-	(retract ?clk)
-)
-
-;--------------------------------
-; Rules for making product Y
-;--------------------------------
-(defrule t5
-	(and (reqY) (B) (C) (clkY))
-	?fB <- (B) 			;get fact A to remove
-	?fC <- (C)			;get fact B to remove
-	?fy <- (reqY)		;bind the request for X
-	?clk <- (clkY)
-	=>
-	(assert (p5)) 			;add p1 state
-	(retract ?fB ?fC ?fy)	;remove resources A and B as well as the request for X
-	(retract ?clk)
-	;(foo)
-)
-
-(defrule t6
-	(and (p5) (clkY))	;match p1 state
-	?fp5 <- (p5)		;bind p1 state
-	?clk <- (clkY)
-	=>
-	(assert (p6))	;add p2 state
-	(retract ?fp5)	;remove p1 state
-	(retract ?clk)
-)
-
-(defrule t7
-	(and (p6) (clkY))	;match p3 state
-	?fp6 <- (p6)		;bind p3 state
-	?clk <- (clkX)
-	=>
-	;(assert (p7))	;produce product X (change to state p4)
-	(assert (Y))
-	(retract ?fp6)	;remove p3 state
-	(assert (B)) 	;return resource A
-	(assert (C)) 	;return resource B
-	(retract ?clk)
-)
-
-(defrule endClkY
-	(and (clkY) (not (end)))
-	?clk <- (clkY)
-	=>
-	(retract ?clk)
 )
 
 ;--------------------------------
 ; Rules for making product X
 ;--------------------------------
 (defrule t1
-	(and (reqX) (A) (B) (clkX))
+	(and (reqX) (fact (x A)) (fact (x B)) (fact (x clk)))
 	?fA <- (A) 			;get fact A to remove
 	?fB <- (B)			;get fact B to remove
 	?fx <- (reqX)		;bind the request for X
-	?clk <- (clkX)
+	?clk <- (clk)
 	=>
 	(assert (p1)) 			;add p1 state
 	(retract ?fA ?fB ?fx)	;remove resources A and B as well as the request for X
 	(retract ?clk)
-	;(foo)
 )
 
 (defrule t2
-	(and (p1) (clkX))	;match p1 state
+	(and (p1) (clk))	;match p1 state
 	?fp1 <- (p1)		;bind p1 state
-	?clk <- (clkX)
+	?clk <- (clk)
 	=>
 	(assert (p2))	;add p2 state
 	(retract ?fp1)	;remove p1 state
@@ -146,9 +71,9 @@
 )
 
 (defrule t3
-	(and (p2) (clkX))	;match p2 state
+	(and (p2) (clk))	;match p2 state
 	?fp2 <- (p2)		;bind p2 state
-	?clk <- (clkX)
+	?clk <- (clk)
 	=>
 	(assert (p3))	;add p3 state
 	(retract ?fp2)	;remove p2 state
@@ -156,21 +81,92 @@
 )
 
 (defrule t4
-	(and (p3) (clkX))	;match p3 state
+	(and (p3) (clk))	;match p3 state
 	?fp3 <- (p3)		;bind p3 state
-	?clk <- (clkX)
+	?clk <- (clk)
 	=>
-	;(assert (p4))	;produce product X (change to state p4)
-	(assert (X))
+	(assert (p4))	;produce product X (change to state p4)
 	(retract ?fp3)	;remove p3 state
 	(assert (A)) 	;return resource A
 	(assert (B)) 	;return resource B
 	(retract ?clk)
 )
 
-(defrule endClkX
-	(and (clkX) (not (end)))
-	?clk <- (clkX)
+;--------------------------------
+; Rules for making product Y
+;--------------------------------
+(defrule t5
+	(and (reqY) (B) (C) (clk))
+	?fB <- (B) 			;get fact A to remove
+	?fC <- (C)			;get fact B to remove
+	?fy <- (reqY)		;bind the request for X
+	?clk <- (clk)
+	=>
+	(assert (p5)) 			;add p1 state
+	(retract ?fB ?fC ?fy)	;remove resources A and B as well as the request for X
+	(retract ?clk)
+)
+
+(defrule t6
+	(and (p5) (clk))	;match p1 state
+	?fp5 <- (p5)		;bind p1 state
+	?clk <- (clk)
+	=>
+	(assert (p6))	;add p2 state
+	(retract ?fp5)	;remove p1 state
+	(retract ?clk)
+)
+
+(defrule t7
+	(and (p6) (clk))	;match p3 state
+	?fp6 <- (p6)		;bind p3 state
+	?clk <- (clk)
+	=>
+	(assert (p7))	;produce product X (change to state p4)
+	(retract ?fp6)	;remove p3 state
+	(assert (B)) 	;return resource A
+	(assert (C)) 	;return resource B
+	(retract ?clk)
+)
+
+;--------------------------------
+; Rules for making product Z
+;--------------------------------
+(defrule t8
+	(and (reqZ) (C) (clk))
+	?fC <- (C)			;get fact C to remove
+	?fz <- (reqZ)		;bind the request for Z
+	?clk <- (clk)
+	=>
+	(assert (p8)) 		;add p1 state
+	(retract ?fC ?fz)	;remove resources A and B as well as the request for X
+	(retract ?clk)
+)
+
+(defrule t9
+	(and (p8) (clk))	;match p1 state
+	?fp8 <- (p8)		;bind p1 state
+	?clk <- (clk)
+	=>
+	(assert (p9))	;add p2 state
+	(retract ?fp8)	;remove p1 state
+	(retract ?clk)
+)
+
+(defrule t10
+	(and (p9) (clk))	;match p3 state
+	?fp9 <- (p9)		;bind p3 state
+	?clk <- (clk)
+	=>
+	(assert (p10))	;produce product X (change to state p4)
+	(retract ?fp9)	;remove p3 state
+	(assert (C)) 	;return resource B
+	(retract ?clk)
+)
+
+(defrule endclk
+	(and (clk) (not (end)))
+	?clk <- (clk)
 	=>
 	(retract ?clk)
 )

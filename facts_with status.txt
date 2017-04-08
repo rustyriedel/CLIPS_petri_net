@@ -1,0 +1,22 @@
+(deftemplate fact
+	(slot x)
+	(slot status)
+)
+
+(deffacts startup
+	(fact (x A) (status 1))
+	(fact (x B) (status 1))
+	(fact (x C) (status 1))
+	(fact (x p1) (status 0))
+	(fact (x p2) (status 0))
+	(fact (x p3) (status 0))
+	(fact (x p4) (status 0))
+	(fact (x p5) (status 0))
+	(fact (x p6) (status 0))
+	(fact (x p7) (status 0))
+	(fact (x p8) (status 0))
+	(fact (x p9) (status 0))
+	(fact (x p10) (status 0))
+	(fact (x clk) (status 1))
+)
+
