@@ -7,3 +7,4 @@
 (open "input.txt" data "r")
 (run)
 (close data)
+(exit)
