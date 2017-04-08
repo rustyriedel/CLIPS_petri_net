@@ -1,33 +1,87 @@
+No transition on this clock pulse
 0,0,0,0,0,0,0,0,0,0
+Fulfill the request for product X
+Allocate resources A and B
+Transition to state p1
 1,0,0,0,0,0,0,0,0,0
+Transition from p1 to state p2
 0,1,0,0,0,0,0,0,0,0
+Transition from p2 to state p3
 0,0,1,0,0,0,0,0,0,0
+Production for product X is complete!
+Deallocate resources A and B
 0,0,0,1,0,0,0,0,0,0
+No transition on this clock pulse
 0,0,0,0,0,0,0,0,0,0
+Fulfill the request for product Y
+Allocate resources B and C
+Transition to state p5
 0,0,0,0,1,0,0,0,0,0
+Transition from p5 to state p6
 0,0,0,0,0,1,0,0,0,0
+Production for product Y is complete!
+Deallocate resources B and C
 0,0,0,0,0,0,1,0,0,0
+No transition on this clock pulse
 0,0,0,0,0,0,0,0,0,0
+Fulfill the request for product Z
+Allocate resource C
+Transition to state p8
 0,0,0,0,0,0,0,1,0,0
+Transition from p8 to state p9
 0,0,0,0,0,0,0,0,1,0
+Production for product Z is complete!
+Deallocate resource C
 0,0,0,0,0,0,0,0,0,1
+No transition on this clock pulse
 0,0,0,0,0,0,0,0,0,0
+Fulfill the request for product X
+Allocate resources A and B
+Transition to state p1
 1,0,0,0,0,0,0,0,0,0
+Transition from p1 to state p2
 0,1,0,0,0,0,0,0,0,0
+Transition from p2 to state p3
 0,0,1,0,0,0,0,0,0,0
+Production for product X is complete!
+Deallocate resources A and B
 0,0,0,1,0,0,0,0,0,0
+No transition on this clock pulse
 0,0,0,0,0,0,0,0,0,0
+Fulfill the request for product Y
+Allocate resources B and C
+Transition to state p5
 0,0,0,0,1,0,0,0,0,0
+Transition from p5 to state p6
 0,0,0,0,0,1,0,0,0,0
+Production for product Y is complete!
+Deallocate resources B and C
 0,0,0,0,0,0,1,0,0,0
+No transition on this clock pulse
 0,0,0,0,0,0,0,0,0,0
+Fulfill the request for product X
+Allocate resources A and B
+Transition to state p1
 1,0,0,0,0,0,0,0,0,0
+Transition from p1 to state p2
 0,1,0,0,0,0,0,0,0,0
+Transition from p2 to state p3
 0,0,1,0,0,0,0,0,0,0
+Production for product X is complete!
+Deallocate resources A and B
 0,0,0,1,0,0,0,0,0,0
+No transition on this clock pulse
 0,0,0,0,0,0,0,0,0,0
+Fulfill the request for product X
+Allocate resources A and B
+Transition to state p1
 1,0,0,0,0,0,0,0,0,0
+Transition from p1 to state p2
 0,1,0,0,0,0,0,0,0,0
+Transition from p2 to state p3
 0,0,1,0,0,0,0,0,0,0
+Production for product X is complete!
+Deallocate resources A and B
 0,0,0,1,0,0,0,0,0,0
+No transition on this clock pulse
 0,0,0,0,0,0,0,0,0,0

@@ -76,6 +76,9 @@
 	(retract ?fx)
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(printout output "Fulfill the request for product X" crlf)
+	(printout output "Allocate resources A and B" crlf)
+	(printout output "Transition to state p1" crlf)
 )
 
 (defrule t2
@@ -87,6 +90,7 @@
 	(modify ?fx (status 0))
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(printout output "Transition from p1 to state p2" crlf)
 )
 
 (defrule t3
@@ -98,6 +102,7 @@
 	(modify ?fx (status 0))
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(printout output "Transition from p2 to state p3" crlf)
 )
 
 (defrule t4
@@ -114,6 +119,8 @@
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
 	(assert (X))
+	(printout output "Production for product X is complete!" crlf)
+	(printout output "Deallocate resources A and B" crlf)
 )
 
 ;--------------------------------
@@ -132,6 +139,9 @@
 	(retract ?fx)
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(printout output "Fulfill the request for product Y" crlf)
+	(printout output "Allocate resources B and C" crlf)
+	(printout output "Transition to state p5" crlf)
 )
 
 (defrule t6
@@ -143,6 +153,7 @@
 	(modify ?fx (status 0))
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(printout output "Transition from p5 to state p6" crlf)
 )
 
 (defrule t7
@@ -159,6 +170,8 @@
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
 	(assert (Y))
+	(printout output "Production for product Y is complete!" crlf)
+	(printout output "Deallocate resources B and C" crlf)
 )
 
 ;--------------------------------
@@ -175,6 +188,9 @@
 	(retract ?fx)
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(printout output "Fulfill the request for product Z" crlf)
+	(printout output "Allocate resource C" crlf)
+	(printout output "Transition to state p8" crlf)
 )
 
 (defrule t9
@@ -186,6 +202,7 @@
 	(modify ?fx (status 0))
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(printout output "Transition from p8 to state p9" crlf)
 )
 
 (defrule t10
@@ -200,6 +217,8 @@
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
 	(assert (Z))
+	(printout output "Production for product Z is complete!" crlf)
+	(printout output "Deallocate resource C" crlf)
 )
 
 (defrule endclk
@@ -207,4 +226,5 @@
 	?clk <- (fact (x clk) (status 1))
 	=>
 	(modify ?clk (status 0))
+	(printout output "No transition on this clock pulse" crlf)
 )
