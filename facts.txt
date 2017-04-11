@@ -10,6 +10,16 @@
 	(type INTEGER))
 )
 
+(deftemplate comm
+	(slot c
+	(type STRING))
+)
+
+(deftemplate comt
+	(slot c
+	(type STRING))
+)
+
 (deffacts startup
 	(fact (x A) (status 1))
 	(fact (x B) (status 1))
@@ -26,4 +36,6 @@
 	(fact (x p10) (status 0))
 	(fact (x clk) (status 0))
 	(fact (x first) (status 1))
+	(comm (c ""))
+	(comt (c ""))
 )
