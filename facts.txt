@@ -1,6 +1,6 @@
 ;EECS 638 Project 01 - Petri net using CLIPS
 ;@Author Rusty Riedel
-;@Date 4/11/1017
+;@Date 4/13/1017
 ;KUID# 2474883
 
 (deftemplate fact
@@ -15,9 +15,13 @@
 	(type STRING))
 )
 
-(deftemplate comt
-	(slot c
-	(type STRING))
+(deftemplate req
+	(slot x
+	(type INTEGER))
+	(slot y
+	(type INTEGER))
+	(slot z
+	(type INTEGER))
 )
 
 (deffacts startup
@@ -37,5 +41,5 @@
 	(fact (x clk) (status 0))
 	(fact (x first) (status 1))
 	(comm (c ""))
-	(comt (c ""))
+	(req (x 0) (y 0) (z 0))
 )

@@ -1,6 +1,6 @@
 ;EECS 638 Project 01 - Petri net using CLIPS
 ;@Author Rusty Riedel
-;@Date 4/11/1017
+;@Date 4/13/1017
 ;KUID# 2474883
 
 (defrule print
@@ -16,6 +16,7 @@
 	?f9 <- (fact (x p9) (status ?p9))
 	?f10 <- (fact (x p10) (status ?p10))
 	?c <- (comm (c ?comment))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	=>
 	(printout output ?p1 ",")
 	(printout output ?p2 ",")
@@ -27,6 +28,10 @@
 	(printout output ?p8 ",")
 	(printout output ?p9 ",")
 	(printout output ?p10 crlf)
+	(if (= ?x 1) then (printout output "Ignore the request for X. "))
+	(if (= ?y 1) then (printout output "Ignore the request for Y. "))
+	(if (= ?z 1) then (printout output "Ignore the request for Z. "))
+	(if (or (= ?x 1) (= ?y 1) (= ?z 1)) then (printout output crlf))
 	(printout output ?comment crlf)
 )
 
@@ -37,18 +42,21 @@
 	?fA <- (fact (x A) (status ?a))
 	?fB <- (fact (x B) (status ?b))
 	?fC <- (fact (x C) (status ?c))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	=>
 	;set first to 0 after 1st run.
 	(if (= ?m 1) then (modify ?f (status 0)))
 
 	;read data from input file
-	(bind ?reqX (read data))	
+	(bind ?reqX (read data))
 	(bind ?reqY (read data))
 	(bind ?reqZ (read data))
 
+	(modify ?req (x ?reqX) (y ?reqY) (z ?reqZ))
+
 	;determine if a request should be added
-	(if (and (= ?reqX 1) (= ?a 1) (= ?b 1)) then	
-		(assert (fact (x reqX) (status 1))))		
+	(if (and (= ?reqX 1) (= ?a 1) (= ?b 1)) then
+		(assert (fact (x reqX) (status 1))))
 	(if (and (= ?reqX 0) (= ?reqY 1) (= ?b 1) (= ?c 1)) then 
 		(assert (fact (x reqY) (status 1))))
 	(if (and (= ?reqX 0) (= ?reqY 0) (= ?reqZ 1) (= ?c 1)) then 
@@ -59,7 +67,8 @@
 			(modify ?f (status 1))
 			(printout output "The exit input has been reached! Terminate simulation!" crlf))
 		else
-			(modify ?clk (status 1))	;start the clock pulse	
+			;start the clock pulse
+			(modify ?clk (status 1))	
 )
 
 ;--------------------------------
@@ -72,6 +81,7 @@
 	?fx <- (fact (x reqX) (status 1))
 	?fy <- (fact (x p1) (status 0))
 	?clk <- (fact (x clk) (status 1))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	?c <- (comm (c ?comment))
 	=>
 	(modify ?fA (status 0))
@@ -79,6 +89,7 @@
 	(retract ?fx)
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(modify ?req (x 0) (y ?y) (z ?z))
 	(modify ?c (c "Fulfill the request for product X. Allocate resources A and B. Transition to place p1."))
 )
 
@@ -135,6 +146,7 @@
 	?fx <- (fact (x reqY) (status 1))
 	?fy <- (fact (x p5) (status 0))
 	?clk <- (fact (x clk) (status 1))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	?c <- (comm (c ?comment))
 	=>
 	(modify ?fB (status 0))
@@ -142,6 +154,7 @@
 	(retract ?fx)
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(modify ?req (x ?x) (y 0) (z ?z))
 	(modify ?c (c "Fulfill the request for product Y. Allocate resources B and C. Transition to place p5."))
 )
 
@@ -184,12 +197,14 @@
 	?fx <- (fact (x reqZ) (status 1))
 	?fy <- (fact (x p8) (status 0))
 	?clk <- (fact (x clk) (status 1))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	?c <- (comm (c ?comment))
 	=>
 	(modify ?fC (status 0))
 	(retract ?fx)
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
+	(modify ?req (x ?x) (y ?y) (z 0))
 	(modify ?c (c "Fulfill the request for product Z. Allocate resource C. Transition to place p8."))
 )
 
