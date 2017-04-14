@@ -1,176 +1,246 @@
-;NOTES
-;set salience to order t1 > t2 > t3 priority? or use conditionals
-;use a func to build the string for output?
-;try using modify for the p1-p4 states instead of creating and deleting
-;current clock system only does one transition per column (X, Y, Z)
+;EECS 638 Project 01 - Petri net using CLIPS
+;@Author Rusty Riedel
+;@Date 4/13/1017
+;KUID# 2474883
 
-(deffunction foo()
-	(printout t "in foo! " crlf)
+(defrule print
+	(and (fact (x clk) (status 0)) (fact (x first) (status 0)))
+	?f1 <- (fact (x p1) (status ?p1))
+	?f2 <- (fact (x p2) (status ?p2))
+	?f3 <- (fact (x p3) (status ?p3))
+	?f4 <- (fact (x p4) (status ?p4))
+	?f5 <- (fact (x p5) (status ?p5))
+	?f6 <- (fact (x p6) (status ?p6))
+	?f7 <- (fact (x p7) (status ?p7))
+	?f8 <- (fact (x p8) (status ?p8))
+	?f9 <- (fact (x p9) (status ?p9))
+	?f10 <- (fact (x p10) (status ?p10))
+	?c <- (comm (c ?comment))
+	?req <- (req (x ?x) (y ?y) (z ?z))
+	=>
+	(printout output ?p1 ",")
+	(printout output ?p2 ",")
+	(printout output ?p3 ",")
+	(printout output ?p4 ",")
+	(printout output ?p5 ",")
+	(printout output ?p6 ",")
+	(printout output ?p7 ",")
+	(printout output ?p8 ",")
+	(printout output ?p9 ",")
+	(printout output ?p10 crlf)
+	(if (= ?x 1) then (printout output "Ignore the request for X. "))
+	(if (= ?y 1) then (printout output "Ignore the request for Y. "))
+	(if (= ?z 1) then (printout output "Ignore the request for Z. "))
+	(if (or (= ?x 1) (= ?y 1) (= ?z 1)) then (printout output crlf))
+	(printout output ?comment crlf)
 )
 
 (defrule upkeep
-	(and (not (clkX))
-		 (not (clkY))
-		 (not (clkZ)))
+	;bind facts to variables
+	?clk <- (fact (x clk) (status 0))
+	?f <- (fact (x first) (status ?m))
+	?fA <- (fact (x A) (status ?a))
+	?fB <- (fact (x B) (status ?b))
+	?fC <- (fact (x C) (status ?c))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	=>
-	(bind ?reqX (read data))	;read data from input file
+	;set first to 0 after 1st run.
+	(if (= ?m 1) then (modify ?f (status 0)))
+
+	;read data from input file
+	(bind ?reqX (read data))
 	(bind ?reqY (read data))
 	(bind ?reqZ (read data))
-	(if (= ?reqX 1) then (assert (reqX)))	;process input file data
-	(if (= ?reqY 1) then (assert (reqY)))	
-	(if (= ?reqZ 1) then (assert (reqZ)))
-	(if (and (= ?reqX -1) (= ?reqY -1) (= ?reqZ -1)) 
-		then 
-			(assert (end))		;add terminating token
+
+	(modify ?req (x ?reqX) (y ?reqY) (z ?reqZ))
+
+	;determine if a request should be added
+	(if (and (= ?reqX 1) (= ?a 1) (= ?b 1)) then
+		(assert (fact (x reqX) (status 1))))
+	(if (and (= ?reqX 0) (= ?reqY 1) (= ?b 1) (= ?c 1)) then 
+		(assert (fact (x reqY) (status 1))))
+	(if (and (= ?reqX 0) (= ?reqY 0) (= ?reqZ 1) (= ?c 1)) then 
+		(assert (fact (x reqZ) (status 1))))
+	(if (and (= ?reqX -1) (= ?reqY -1) (= ?reqZ -1)) then
+			;end simulation
+			(assert (fact (x end) (status 1)))			
+			(modify ?f (status 1))
+			(printout output "The exit input has been reached! Terminate simulation!" crlf))
 		else
-			(assert (clkX))		;add clock signals
-			(assert (clkY))
-			(assert (clkZ))
-	)
-)
-
-;--------------------------------
-; Rules for making product Z
-;--------------------------------
-(defrule t8
-	(and (reqZ) (C) (clkZ))
-	?fC <- (C)			;get fact C to remove
-	?fz <- (reqZ)		;bind the request for Z
-	?clk <- (clkZ)
-	=>
-	(assert (p8)) 		;add p1 state
-	(retract ?fC ?fz)	;remove resources A and B as well as the request for X
-	(retract ?clk)
-	;(foo)
-)
-
-(defrule t9
-	(and (p8) (clkZ))	;match p1 state
-	?fp8 <- (p8)		;bind p1 state
-	?clk <- (clkZ)
-	=>
-	(assert (p9))	;add p2 state
-	(retract ?fp8)	;remove p1 state
-	(retract ?clk)
-)
-
-(defrule t10
-	(and (p9) (clkZ))	;match p3 state
-	?fp9 <- (p9)		;bind p3 state
-	?clk <- (clkZ)
-	=>
-	;(assert (p10))	;produce product X (change to state p4)
-	(assert (Z))
-	(retract ?fp9)	;remove p3 state
-	(assert (C)) 	;return resource B
-	(retract ?clk)
-)
-
-(defrule endClkZ
-	(and (clkZ) (not (end)))
-	?clk <- (clkZ)
-	=>
-	(retract ?clk)
-)
-
-;--------------------------------
-; Rules for making product Y
-;--------------------------------
-(defrule t5
-	(and (reqY) (B) (C) (clkY))
-	?fB <- (B) 			;get fact A to remove
-	?fC <- (C)			;get fact B to remove
-	?fy <- (reqY)		;bind the request for X
-	?clk <- (clkY)
-	=>
-	(assert (p5)) 			;add p1 state
-	(retract ?fB ?fC ?fy)	;remove resources A and B as well as the request for X
-	(retract ?clk)
-	;(foo)
-)
-
-(defrule t6
-	(and (p5) (clkY))	;match p1 state
-	?fp5 <- (p5)		;bind p1 state
-	?clk <- (clkY)
-	=>
-	(assert (p6))	;add p2 state
-	(retract ?fp5)	;remove p1 state
-	(retract ?clk)
-)
-
-(defrule t7
-	(and (p6) (clkY))	;match p3 state
-	?fp6 <- (p6)		;bind p3 state
-	?clk <- (clkX)
-	=>
-	;(assert (p7))	;produce product X (change to state p4)
-	(assert (Y))
-	(retract ?fp6)	;remove p3 state
-	(assert (B)) 	;return resource A
-	(assert (C)) 	;return resource B
-	(retract ?clk)
-)
-
-(defrule endClkY
-	(and (clkY) (not (end)))
-	?clk <- (clkY)
-	=>
-	(retract ?clk)
+			;start the clock pulse
+			(modify ?clk (status 1))	
 )
 
 ;--------------------------------
 ; Rules for making product X
 ;--------------------------------
 (defrule t1
-	(and (reqX) (A) (B) (clkX))
-	?fA <- (A) 			;get fact A to remove
-	?fB <- (B)			;get fact B to remove
-	?fx <- (reqX)		;bind the request for X
-	?clk <- (clkX)
+	(and (fact (x reqX) (status 1)) (fact (x A) (status 1)) (fact (x B) (status 1)) (fact (x clk) (status 1)))
+	?fA <- (fact (x A) (status 1))
+	?fB <- (fact (x B) (status 1))
+	?fx <- (fact (x reqX) (status 1))
+	?fy <- (fact (x p1) (status 0))
+	?clk <- (fact (x clk) (status 1))
+	?req <- (req (x ?x) (y ?y) (z ?z))
+	?c <- (comm (c ?comment))
 	=>
-	(assert (p1)) 			;add p1 state
-	(retract ?fA ?fB ?fx)	;remove resources A and B as well as the request for X
-	(retract ?clk)
-	;(foo)
+	(modify ?fA (status 0))
+	(modify ?fB (status 0))
+	(retract ?fx)
+	(modify ?fy (status 1))
+	(modify ?clk (status 0))
+	(modify ?req (x 0) (y ?y) (z ?z))
+	(modify ?c (c "Fulfill the request for product X. Allocate resources A and B. Transition to place p1."))
 )
 
 (defrule t2
-	(and (p1) (clkX))	;match p1 state
-	?fp1 <- (p1)		;bind p1 state
-	?clk <- (clkX)
+	(and   (fact (x p1) (status 1)) (fact (x clk) (status 1)))
+	?fx <- (fact (x p1) (status 1))
+	?fy <- (fact (x p2) (status 0))
+	?clk <- (fact (x clk) (status 1))
+	?c <- (comm (c ?comment))
 	=>
-	(assert (p2))	;add p2 state
-	(retract ?fp1)	;remove p1 state
-	(retract ?clk)
+	(modify ?fx (status 0))
+	(modify ?fy (status 1))
+	(modify ?clk (status 0))
+	(modify ?c (c "Transition from place p1 to place p2."))
 )
 
 (defrule t3
-	(and (p2) (clkX))	;match p2 state
-	?fp2 <- (p2)		;bind p2 state
-	?clk <- (clkX)
+	(and   (fact (x p2) (status 1)) (fact (x clk) (status 1)))
+	?fx <- (fact (x p2) (status 1))
+	?fy <- (fact (x p3) (status 0))
+	?clk <- (fact (x clk) (status 1))
+	?c <- (comm (c ?comment))
 	=>
-	(assert (p3))	;add p3 state
-	(retract ?fp2)	;remove p2 state
-	(retract ?clk)
+	(modify ?fx (status 0))
+	(modify ?fy (status 1))
+	(modify ?clk (status 0))
+	(modify ?c (c "Transition from place p2 to place p3."))
 )
 
 (defrule t4
-	(and (p3) (clkX))	;match p3 state
-	?fp3 <- (p3)		;bind p3 state
-	?clk <- (clkX)
+	(and (fact (x p3) (status 1)) (fact (x clk) (status 1)))
+	?fA <- (fact (x A) (status 0))
+	?fB <- (fact (x B) (status 0))
+	?fx <- (fact (x p3) (status 1))
+	?fy <- (fact (x p4) (status ?fys))
+	?clk <- (fact (x clk) (status 1))
+	?c <- (comm (c ?comment))
 	=>
-	;(assert (p4))	;produce product X (change to state p4)
-	(assert (X))
-	(retract ?fp3)	;remove p3 state
-	(assert (A)) 	;return resource A
-	(assert (B)) 	;return resource B
-	(retract ?clk)
+	(modify ?fA (status 1))
+	(modify ?fB (status 1))
+	(modify ?fx (status 0))
+	(modify ?fy (status (+ ?fys 1)))
+	(modify ?clk (status 0))
+	(modify ?c (c "Transition from place p3 to place p4. Production for product X is complete! Deallocate resources A and B."))
 )
 
-(defrule endClkX
-	(and (clkX) (not (end)))
-	?clk <- (clkX)
+;--------------------------------
+; Rules for making product Y
+;--------------------------------
+(defrule t5
+	(and (fact (x reqY) (status 1)) (fact (x B) (status 1)) (fact (x C) (status 1)) (fact (x clk) (status 1)))
+	?fB <- (fact (x B) (status 1))
+	?fC <- (fact (x C) (status 1))
+	?fx <- (fact (x reqY) (status 1))
+	?fy <- (fact (x p5) (status 0))
+	?clk <- (fact (x clk) (status 1))
+	?req <- (req (x ?x) (y ?y) (z ?z))
+	?c <- (comm (c ?comment))
 	=>
-	(retract ?clk)
+	(modify ?fB (status 0))
+	(modify ?fC (status 0))
+	(retract ?fx)
+	(modify ?fy (status 1))
+	(modify ?clk (status 0))
+	(modify ?req (x ?x) (y 0) (z ?z))
+	(modify ?c (c "Fulfill the request for product Y. Allocate resources B and C. Transition to place p5."))
+)
+
+(defrule t6
+	(and (fact (x p5) (status 1)) (fact (x clk) (status 1)))
+	?fx <- (fact (x p5) (status 1))
+	?fy <- (fact (x p6) (status 0))
+	?clk <- (fact (x clk) (status 1))
+	?c <- (comm (c ?comment))
+	=>
+	(modify ?fx (status 0))
+	(modify ?fy (status 1))
+	(modify ?clk (status 0))
+	(modify ?c (c "Transition from place p5 to place p6."))
+)
+
+(defrule t7
+	(and (fact (x p6) (status 1)) (fact (x clk) (status 1)))
+	?fB <- (fact (x B) (status 0))
+	?fC <- (fact (x C) (status 0))
+	?fx <- (fact (x p6) (status 1))
+	?fy <- (fact (x p7) (status ?fys))
+	?clk <- (fact (x clk) (status 1))
+	?c <- (comm (c ?comment))
+	=>
+	(modify ?fB (status 1))
+	(modify ?fC (status 1))
+	(modify ?fx (status 0))
+	(modify ?fy (status (+ ?fys 1)))
+	(modify ?clk (status 0))
+	(modify ?c (c "Transition from place p6 to place p7. Production for product Y is complete! Deallocate resources B and C."))
+)
+
+;--------------------------------
+; Rules for making product Z
+;--------------------------------
+(defrule t8
+	(and (fact (x reqZ) (status 1)) (fact (x C) (status 1)) (fact (x clk) (status 1)))
+	?fC <- (fact (x C) (status 1))
+	?fx <- (fact (x reqZ) (status 1))
+	?fy <- (fact (x p8) (status 0))
+	?clk <- (fact (x clk) (status 1))
+	?req <- (req (x ?x) (y ?y) (z ?z))
+	?c <- (comm (c ?comment))
+	=>
+	(modify ?fC (status 0))
+	(retract ?fx)
+	(modify ?fy (status 1))
+	(modify ?clk (status 0))
+	(modify ?req (x ?x) (y ?y) (z 0))
+	(modify ?c (c "Fulfill the request for product Z. Allocate resource C. Transition to place p8."))
+)
+
+(defrule t9
+	(and (fact (x p8) (status 1)) (fact (x clk) (status 1)))
+	?fx <- (fact (x p8) (status 1))
+	?fy <- (fact (x p9) (status 0))
+	?clk <- (fact (x clk) (status 1))
+	?c <- (comm (c ?comment))
+	=>
+	(modify ?fx (status 0))
+	(modify ?fy (status 1))
+	(modify ?clk (status 0))
+	(modify ?c (c "Transition from place p8 to place p9."))
+)
+
+(defrule t10
+	(and (fact (x p9) (status 1)) (fact (x clk) (status 1)))
+	?fC <- (fact (x C) (status 0))
+	?fx <- (fact (x p9) (status 1))
+	?fy <- (fact (x p10) (status ?fys))
+	?clk <- (fact (x clk) (status 1))
+	?c <- (comm (c ?comment))
+	=>
+	(modify ?fC (status 1))
+	(modify ?fx (status 0))
+	(modify ?fy (status (+ ?fys 1)))
+	(modify ?clk (status 0))
+	(modify ?c (c "Transition from place p9 to place p10. Production for product Z is complete! Deallocate resource C."))
+)
+
+(defrule endclk
+	(and (fact (x clk) (status 1)) (not (fact (x end) (status 1))))
+	?clk <- (fact (x clk) (status 1))
+	?c <- (comm (c ?comment))
+	=>
+	(modify ?clk (status 0))
+	(modify ?c (c "No product requests, therefore, no transition on this clock pulse."))
 )

@@ -1,13 +1,45 @@
-(deftemplate f
+;EECS 638 Project 01 - Petri net using CLIPS
+;@Author Rusty Riedel
+;@Date 4/13/1017
+;KUID# 2474883
+
+(deftemplate fact
 	(slot x
 	(type SYMBOL))
+	(slot status
+	(type INTEGER))
 )
 
-(deffacts resource
-	(A)
-	(B)
-	(B)
-	(C)
-	(C)
+(deftemplate comm
+	(slot c
+	(type STRING))
 )
 
+(deftemplate req
+	(slot x
+	(type INTEGER))
+	(slot y
+	(type INTEGER))
+	(slot z
+	(type INTEGER))
+)
+
+(deffacts startup
+	(fact (x A) (status 1))
+	(fact (x B) (status 1))
+	(fact (x C) (status 1))
+	(fact (x p1) (status 0))
+	(fact (x p2) (status 0))
+	(fact (x p3) (status 0))
+	(fact (x p4) (status 0))
+	(fact (x p5) (status 0))
+	(fact (x p6) (status 0))
+	(fact (x p7) (status 0))
+	(fact (x p8) (status 0))
+	(fact (x p9) (status 0))
+	(fact (x p10) (status 0))
+	(fact (x clk) (status 0))
+	(fact (x first) (status 1))
+	(comm (c ""))
+	(req (x 0) (y 0) (z 0))
+)
