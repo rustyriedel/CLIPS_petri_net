@@ -1,4 +1,3 @@
-::(set-fact-duplication TRUE)
 (watch facts)
 (watch rules)
 (load facts.txt)

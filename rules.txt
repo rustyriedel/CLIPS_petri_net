@@ -1,6 +1,6 @@
 ;EECS 638 Project 01 - Petri net using CLIPS
 ;@Author Rusty Riedel
-;@Date 4/11/1017
+;@Date 4/13/1017
 ;KUID# 2474883
 
 (defrule print
@@ -16,6 +16,7 @@
 	?f9 <- (fact (x p9) (status ?p9))
 	?f10 <- (fact (x p10) (status ?p10))
 	?c <- (comm (c ?comment))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	=>
 	(printout output ?p1 ",")
 	(printout output ?p2 ",")
@@ -27,6 +28,10 @@
 	(printout output ?p8 ",")
 	(printout output ?p9 ",")
 	(printout output ?p10 crlf)
+	(if (= ?x 1) then (printout output "Ignore the request for X. "))
+	(if (= ?y 1) then (printout output "Ignore the request for Y. "))
+	(if (= ?z 1) then (printout output "Ignore the request for Z. "))
+	(if (or (= ?x 1) (= ?y 1) (= ?z 1)) then (printout output crlf))
 	(printout output ?comment crlf)
 )
 
@@ -37,25 +42,21 @@
 	?fA <- (fact (x A) (status ?a))
 	?fB <- (fact (x B) (status ?b))
 	?fC <- (fact (x C) (status ?c))
-	?f4 <- (fact (x p4) (status ?p4))
-	?f7 <- (fact (x p7) (status ?p7))
-	?f10 <- (fact (x p10) (status ?p10))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	=>
-	;set first to 0 after 1st run. remove end states (p4, p7, p10) on
-	;the next cycle after they are set.
+	;set first to 0 after 1st run.
 	(if (= ?m 1) then (modify ?f (status 0)))
-	(if (= ?p4 1) then (modify ?f4 (status 0)))
-	(if (= ?p7 1) then (modify ?f7 (status 0)))
-	(if (= ?p10 1) then (modify ?f10 (status 0)))
 
 	;read data from input file
-	(bind ?reqX (read data))	
+	(bind ?reqX (read data))
 	(bind ?reqY (read data))
 	(bind ?reqZ (read data))
 
+	(modify ?req (x ?reqX) (y ?reqY) (z ?reqZ))
+
 	;determine if a request should be added
-	(if (and (= ?reqX 1) (= ?a 1) (= ?b 1)) then	
-		(assert (fact (x reqX) (status 1))))		
+	(if (and (= ?reqX 1) (= ?a 1) (= ?b 1)) then
+		(assert (fact (x reqX) (status 1))))
 	(if (and (= ?reqX 0) (= ?reqY 1) (= ?b 1) (= ?c 1)) then 
 		(assert (fact (x reqY) (status 1))))
 	(if (and (= ?reqX 0) (= ?reqY 0) (= ?reqZ 1) (= ?c 1)) then 
@@ -64,9 +65,9 @@
 			;end simulation
 			(assert (fact (x end) (status 1)))			
 			(modify ?f (status 1))
-			(printout output "The end state has been reached! Terminate simulation!" crlf))
+			(printout output "The exit input has been reached! Terminate simulation!" crlf))
 		else
-			;start the clock pulse	
+			;start the clock pulse
 			(modify ?clk (status 1))	
 )
 
@@ -80,6 +81,7 @@
 	?fx <- (fact (x reqX) (status 1))
 	?fy <- (fact (x p1) (status 0))
 	?clk <- (fact (x clk) (status 1))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	?c <- (comm (c ?comment))
 	=>
 	(modify ?fA (status 0))
@@ -87,7 +89,8 @@
 	(retract ?fx)
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
-	(modify ?c (c "Fulfill the request for product X. Allocate resources A and B. Transition to state p1."))
+	(modify ?req (x 0) (y ?y) (z ?z))
+	(modify ?c (c "Fulfill the request for product X. Allocate resources A and B. Transition to place p1."))
 )
 
 (defrule t2
@@ -100,7 +103,7 @@
 	(modify ?fx (status 0))
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
-	(modify ?c (c "Transition from state p1 to state p2."))
+	(modify ?c (c "Transition from place p1 to place p2."))
 )
 
 (defrule t3
@@ -113,7 +116,7 @@
 	(modify ?fx (status 0))
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
-	(modify ?c (c "Transition from state p2 to state p3."))
+	(modify ?c (c "Transition from place p2 to place p3."))
 )
 
 (defrule t4
@@ -121,17 +124,16 @@
 	?fA <- (fact (x A) (status 0))
 	?fB <- (fact (x B) (status 0))
 	?fx <- (fact (x p3) (status 1))
-	?fy <- (fact (x p4) (status 0))
+	?fy <- (fact (x p4) (status ?fys))
 	?clk <- (fact (x clk) (status 1))
 	?c <- (comm (c ?comment))
 	=>
 	(modify ?fA (status 1))
 	(modify ?fB (status 1))
 	(modify ?fx (status 0))
-	(modify ?fy (status 1))
+	(modify ?fy (status (+ ?fys 1)))
 	(modify ?clk (status 0))
-	(assert (X))
-	(modify ?c (c "Transition from state p3 to state p4. Production for product X is complete! Deallocate resources A and B."))
+	(modify ?c (c "Transition from place p3 to place p4. Production for product X is complete! Deallocate resources A and B."))
 )
 
 ;--------------------------------
@@ -144,6 +146,7 @@
 	?fx <- (fact (x reqY) (status 1))
 	?fy <- (fact (x p5) (status 0))
 	?clk <- (fact (x clk) (status 1))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	?c <- (comm (c ?comment))
 	=>
 	(modify ?fB (status 0))
@@ -151,7 +154,8 @@
 	(retract ?fx)
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
-	(modify ?c (c "Fulfill the request for product Y. Allocate resources B and C. Transition to state p5."))
+	(modify ?req (x ?x) (y 0) (z ?z))
+	(modify ?c (c "Fulfill the request for product Y. Allocate resources B and C. Transition to place p5."))
 )
 
 (defrule t6
@@ -164,7 +168,7 @@
 	(modify ?fx (status 0))
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
-	(modify ?c (c "Transition from state p5 to state p6."))
+	(modify ?c (c "Transition from place p5 to place p6."))
 )
 
 (defrule t7
@@ -172,17 +176,16 @@
 	?fB <- (fact (x B) (status 0))
 	?fC <- (fact (x C) (status 0))
 	?fx <- (fact (x p6) (status 1))
-	?fy <- (fact (x p7) (status 0))
+	?fy <- (fact (x p7) (status ?fys))
 	?clk <- (fact (x clk) (status 1))
 	?c <- (comm (c ?comment))
 	=>
 	(modify ?fB (status 1))
 	(modify ?fC (status 1))
 	(modify ?fx (status 0))
-	(modify ?fy (status 1))
+	(modify ?fy (status (+ ?fys 1)))
 	(modify ?clk (status 0))
-	(assert (Y))
-	(modify ?c (c "Transition from state p6 to state p7. Production for product Y is complete! Deallocate resources B and C.")))
+	(modify ?c (c "Transition from place p6 to place p7. Production for product Y is complete! Deallocate resources B and C."))
 )
 
 ;--------------------------------
@@ -194,13 +197,15 @@
 	?fx <- (fact (x reqZ) (status 1))
 	?fy <- (fact (x p8) (status 0))
 	?clk <- (fact (x clk) (status 1))
+	?req <- (req (x ?x) (y ?y) (z ?z))
 	?c <- (comm (c ?comment))
 	=>
 	(modify ?fC (status 0))
 	(retract ?fx)
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
-	(modify ?c (c "Fulfill the request for product Z. Allocate resource C. Transition to state p8."))
+	(modify ?req (x ?x) (y ?y) (z 0))
+	(modify ?c (c "Fulfill the request for product Z. Allocate resource C. Transition to place p8."))
 )
 
 (defrule t9
@@ -213,23 +218,22 @@
 	(modify ?fx (status 0))
 	(modify ?fy (status 1))
 	(modify ?clk (status 0))
-	(modify ?c (c "Transition from state p8 to state p9."))
+	(modify ?c (c "Transition from place p8 to place p9."))
 )
 
 (defrule t10
 	(and (fact (x p9) (status 1)) (fact (x clk) (status 1)))
 	?fC <- (fact (x C) (status 0))
 	?fx <- (fact (x p9) (status 1))
-	?fy <- (fact (x p10) (status 0))
+	?fy <- (fact (x p10) (status ?fys))
 	?clk <- (fact (x clk) (status 1))
 	?c <- (comm (c ?comment))
 	=>
 	(modify ?fC (status 1))
 	(modify ?fx (status 0))
-	(modify ?fy (status 1))
+	(modify ?fy (status (+ ?fys 1)))
 	(modify ?clk (status 0))
-	(assert (Z))
-	(modify ?c (c "Transition from state p9 to state p10. Production for product Z is complete! Deallocate resource C."))
+	(modify ?c (c "Transition from place p9 to place p10. Production for product Z is complete! Deallocate resource C."))
 )
 
 (defrule endclk
