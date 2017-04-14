@@ -17,7 +17,7 @@ Manual process for running the program:
 	-operations.bat
 2) Put the desired "input.txt" file in the same directory.
 3) Use one of the following methods to run the CLIPS program:
-	-On Linux via terminal (or use the run.sh script):
+	-On Linux via terminal:
 		./<CLIPS binary name> -f operations.bat
 	-On Windows via command prompt:
 		<CLIPS binary name> -f operations.bat
